@@ -78,7 +78,9 @@
   .section-head .eyebrow{margin-bottom:12px;}
   .section-head h2{font-family:'Fraunces',serif;font-weight:600;font-size:32px;margin:0;}
 
-  .plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--hairline);border-radius:var(--radius);overflow:hidden;}
+  .plan-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border:1px solid var(--hairline);border-radius:var(--radius);overflow:hidden;max-width:760px;}
+  .gst-note{font-size:12px;color:var(--parchment-dim);margin-top:18px;}
+  .gst-note b{color:var(--brass);font-weight:500;}
   .plan{
     background:var(--steel);padding:36px 30px;border-right:1px solid var(--hairline);position:relative;
     display:flex;flex-direction:column;
@@ -169,11 +171,11 @@
 
   <header class="hero">
     <div class="eyebrow">Statement of Membership</div>
-    <h1>Access, held to account.<br>Pay however suits the ledger.</h1>
-    <p class="sub">One membership, three ways to settle it — card, bank transfer, or crypto. No lock-in, cancel from your account at any time.</p>
+    <h1>The levels for today.<br>The reasoning behind them.</h1>
+    <p class="sub">Every session, before the bell: the intraday levels I'm trading off, and a plain-language read on why the market's actually moving that way — not just where the lines are, but the order flow, positioning, and structure putting them there.</p>
     <div class="ledger-strip">
-      <div><div class="num">2,140</div><div class="lbl">active members</div></div>
-      <div><div class="num">99.9%</div><div class="lbl">uptime, ledger-verified</div></div>
+      <div><div class="num">Daily</div><div class="lbl">levels, before the open</div></div>
+      <div><div class="num">1</div><div class="lbl">plain-english market read</div></div>
       <div><div class="num">24h</div><div class="lbl">crypto confirmation window</div></div>
     </div>
   </header>
@@ -185,48 +187,35 @@
     </div>
     <div class="plan-grid">
 
-      <div class="plan" data-plan="associate" data-price="9">
-        <div class="plan-name">Associate</div>
-        <div class="plan-desc">For getting acquainted with the vault.</div>
-        <div class="plan-price">$9<span>/mo</span></div>
+      <div class="plan" data-plan="monthly" data-price="99">
+        <div class="plan-name">Monthly</div>
+        <div class="plan-desc">Pay session by session, no commitment.</div>
+        <div class="plan-price">$99<span>/mo</span></div>
         <div class="plan-cycle">billed monthly</div>
         <ul class="plan-features">
-          <li>Core access</li>
-          <li>Email support</li>
+          <li>Daily intraday levels</li>
+          <li>Plain-language market read each session</li>
           <li>Cancel anytime</li>
         </ul>
-        <button class="btn open-pay" data-plan="Associate" data-price="9">Open account</button>
+        <button class="btn open-pay" data-plan="Monthly" data-price="99">Open account</button>
       </div>
 
-      <div class="plan featured" data-plan="member" data-price="24">
-        <div class="seal">MOST<br>HELD</div>
-        <div class="plan-name">Member</div>
-        <div class="plan-desc">The standing most people settle into.</div>
-        <div class="plan-price">$24<span>/mo</span></div>
-        <div class="plan-cycle">billed monthly</div>
+      <div class="plan featured" data-plan="yearly" data-price="999">
+        <div class="seal">BEST<br>VALUE</div>
+        <div class="plan-name">Yearly</div>
+        <div class="plan-desc">Same standing, settled once a year.</div>
+        <div class="plan-price">$999<span>/yr</span></div>
+        <div class="plan-cycle">billed annually · 2 months free vs. monthly</div>
         <ul class="plan-features">
-          <li>Everything in Associate</li>
-          <li>Priority support</li>
-          <li>Full archive access</li>
-          <li>Early releases</li>
+          <li>Everything in Monthly</li>
+          <li>Priced at $83/mo effectively</li>
+          <li>Locked rate for the full year</li>
         </ul>
-        <button class="btn solid open-pay" data-plan="Member" data-price="24">Open account</button>
-      </div>
-
-      <div class="plan" data-plan="trustee" data-price="59">
-        <div class="plan-name">Trustee</div>
-        <div class="plan-desc">For those who want a seat at the table.</div>
-        <div class="plan-price">$59<span>/mo</span></div>
-        <div class="plan-cycle">billed monthly</div>
-        <ul class="plan-features">
-          <li>Everything in Member</li>
-          <li>Direct line to the team</li>
-          <li>Vote on roadmap items</li>
-        </ul>
-        <button class="btn open-pay" data-plan="Trustee" data-price="59">Open account</button>
+        <button class="btn solid open-pay" data-plan="Yearly" data-price="999">Open account</button>
       </div>
 
     </div>
+    <div class="gst-note">Paying by bank transfer? An additional <b>18% GST</b> applies on top of the listed price, per Indian tax requirements. Card and crypto payments show the listed price as-is.</div>
   </section>
 
   <footer id="faq">
@@ -244,8 +233,16 @@
     <div class="pay-option" id="payCard">
       <div class="pay-icon">▤</div>
       <div>
-        <div class="pay-title">Card / Bank transfer</div>
-        <div class="pay-sub">Visa, Mastercard, ACH, UPI — via Razorpay/Stripe</div>
+        <div class="pay-title">Card</div>
+        <div class="pay-sub" id="cardSub">Visa, Mastercard, UPI — via Razorpay</div>
+      </div>
+    </div>
+
+    <div class="pay-option" id="payBank">
+      <div class="pay-icon">⇄</div>
+      <div>
+        <div class="pay-title">Bank transfer</div>
+        <div class="pay-sub" id="bankSub">NEFT/RTGS — includes 18% GST</div>
       </div>
     </div>
 
@@ -264,13 +261,20 @@
 <script>
   const overlay = document.getElementById('overlay');
   const modalPlanTag = document.getElementById('modalPlanTag');
-  let currentPlan = null, currentPrice = null;
+  const cardSub = document.getElementById('cardSub');
+  const bankSub = document.getElementById('bankSub');
+  const GST_RATE = 0.18;
+  let currentPlan = null, currentPrice = null, currentCycle = null;
 
   document.querySelectorAll('.open-pay').forEach(btn => {
     btn.addEventListener('click', () => {
       currentPlan = btn.dataset.plan;
-      currentPrice = btn.dataset.price;
-      modalPlanTag.textContent = `— ${currentPlan} · $${currentPrice}/mo`;
+      currentPrice = parseFloat(btn.dataset.price);
+      currentCycle = currentPlan === 'Yearly' ? 'yr' : 'mo';
+      modalPlanTag.textContent = `— ${currentPlan} · $${currentPrice}/${currentCycle}`;
+      cardSub.textContent = `Visa, Mastercard, UPI · $${currentPrice.toFixed(2)}`;
+      const gstTotal = (currentPrice * (1 + GST_RATE)).toFixed(2);
+      bankSub.textContent = `NEFT/RTGS · $${currentPrice.toFixed(2)} + 18% GST = $${gstTotal}`;
       overlay.classList.add('open');
     });
   });
@@ -278,19 +282,35 @@
   document.getElementById('modalClose').addEventListener('click', () => overlay.classList.remove('open'));
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
 
-  // Card / bank transfer -> calls your backend to create a checkout session
+  // Card -> calls your backend to create a checkout session (no GST added)
   document.getElementById('payCard').addEventListener('click', async () => {
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: currentPlan, price: currentPrice })
+        body: JSON.stringify({ plan: currentPlan, price: currentPrice, method: 'card' })
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url; // redirect to Razorpay/Stripe hosted checkout
-      else alert('Checkout is not wired up yet — see api-checkout.js');
+      else alert('Checkout is not wired up yet — see api/checkout.js');
     } catch (err) {
-      alert('Checkout endpoint not deployed yet — see api-checkout.js');
+      alert('Checkout endpoint not deployed yet — see api/checkout.js');
+    }
+  });
+
+  // Bank transfer -> same backend, flagged so the server adds 18% GST
+  document.getElementById('payBank').addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: currentPlan, price: currentPrice, method: 'bank_transfer' })
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else alert('Checkout is not wired up yet — see api/checkout.js');
+    } catch (err) {
+      alert('Checkout endpoint not deployed yet — see api/checkout.js');
     }
   });
 

@@ -12,10 +12,16 @@
    covers this comfortably at low volume.
 3. Set environment variables in Vercel → Project → Settings → Environment Variables:
    - `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`
-   - `RAZORPAY_PLAN_ASSOCIATE`, `RAZORPAY_PLAN_MEMBER`, `RAZORPAY_PLAN_TRUSTEE`
-     (create these Plan IDs first in Razorpay Dashboard → Subscriptions → Plans)
+   - `RAZORPAY_PLAN_MONTHLY`, `RAZORPAY_PLAN_YEARLY`
+     (create these Plan IDs first in Razorpay Dashboard → Subscriptions → Plans, priced in INR — $99/mo and $999/yr converted at your target rate)
+   - `USD_TO_INR` (static fallback FX rate used only for the bank-transfer GST calc, e.g. `83`)
    - `NOWPAYMENTS_API_KEY`
    - `SITE_URL` (your deployed domain, e.g. https://vault.vercel.app)
+
+## Pricing
+- Monthly: **$99/mo**, Yearly: **$999/yr**
+- **Bank transfer only**: +18% GST added on top (per Indian tax requirement) — handled server-side in `api/checkout.js`, not just cosmetic on the frontend.
+- Card and crypto: listed price, no GST added.
 4. Deploy. Done — you get a free `*.vercel.app` domain, or attach your own.
 
 ## Accounts you need to open (outside this repo)

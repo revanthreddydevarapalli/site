@@ -4,10 +4,11 @@
 // endpoint (see NOWPAYMENTS_SUBSCRIPTIONS note below) if you want auto-renewal.
 
 const PRICE_MAP = {
-  Associate: 9,
-  Member: 24,
-  Trustee: 59,
+  Monthly: 99,
+  Yearly: 999,
 };
+// No GST surcharge applied here — GST is only added on the bank transfer
+// path per the pricing rule (see api/checkout.js).
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();

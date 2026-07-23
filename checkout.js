@@ -1,8 +1,14 @@
 // /api/checkout.js — Vercel serverless function
-// Handles card + bank transfer subscriptions.
-// Uses Razorpay (works for India-based accounts). Swap for Stripe if you're
-// incorporated somewhere Stripe accepts directly — the Stripe version is
-// commented below.
+// Handles card payments (fixed-price Razorpay subscription) and bank
+// transfer payments (one-off Razorpay order, price + 18% GST).
+//
+// Card and bank transfer are handled differently on purpose:
+// - Card: recurring subscription against a pre-made Razorpay Plan (fixed price).
+// - Bank transfer: Razorpay Subscriptions don't support per-request price
+//   overrides, so GST-inclusive bank transfer payments go through the
+//   Orders API instead (still recurs — you re-invoice each cycle, or use
+//   Razorpay's e-mandate/NACH flow for true bank-debit recurring if you want
+//   it fully automatic).
 
 import Razorpay from 'razorpay';
 
@@ -11,66 +17,67 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Map your plan names to Razorpay Plan IDs (create these once in the
-// Razorpay dashboard under Subscriptions > Plans).
+const GST_RATE = 0.18;
+
+// Base prices in USD. Razorpay settles in INR for India-based accounts —
+// convert at checkout time via a live FX rate, or just price the Plan IDs
+// directly in INR in the Razorpay dashboard and skip conversion here.
+const BASE_PRICE = {
+  Monthly: 99,
+  Yearly: 999,
+};
+
+// Razorpay Plan IDs for the CARD/recurring path — create these once in
+// Razorpay Dashboard > Subscriptions > Plans, priced in INR.
 const PLAN_MAP = {
-  Associate: process.env.RAZORPAY_PLAN_ASSOCIATE,
-  Member: process.env.RAZORPAY_PLAN_MEMBER,
-  Trustee: process.env.RAZORPAY_PLAN_TRUSTEE,
+  Monthly: process.env.RAZORPAY_PLAN_MONTHLY,
+  Yearly: process.env.RAZORPAY_PLAN_YEARLY,
 };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { plan } = req.body;
-  const plan_id = PLAN_MAP[plan];
-  if (!plan_id) return res.status(400).json({ error: 'Unknown plan' });
+  const { plan, method } = req.body; // method: 'card' | 'bank_transfer'
+  const base = BASE_PRICE[plan];
+  if (!base) return res.status(400).json({ error: 'Unknown plan' });
 
   try {
+    if (method === 'bank_transfer') {
+      // Price with GST added, converted to paise (Razorpay uses smallest unit).
+      const totalUsd = +(base * (1 + GST_RATE)).toFixed(2);
+      const fxRate = Number(process.env.USD_TO_INR) || 83; // static fallback rate
+      const totalInPaise = Math.round(totalUsd * 100 * fxRate);
+      // ^ swap in a live FX lookup if you want accurate INR pricing.
+
+      const order = await razorpay.orders.create({
+        amount: totalInPaise,
+        currency: 'INR',
+        receipt: `${plan}-bank-${Date.now()}`,
+        notes: { plan, method: 'bank_transfer', gst_applied: 'true', base_usd: base },
+      });
+
+      // Razorpay Orders don't have a hosted redirect URL by default — pair
+      // this with Razorpay Checkout.js on the frontend, or enable Payment
+      // Links (dashboard > Payment Links > create via API) for a plain URL.
+      return res.status(200).json({ order_id: order.id, amount: order.amount });
+    }
+
+    // Default: card, recurring subscription at listed price, no GST added.
+    const plan_id = PLAN_MAP[plan];
+    if (!plan_id) return res.status(400).json({ error: 'Plan not configured' });
+
     const subscription = await razorpay.subscriptions.create({
       plan_id,
       customer_notify: 1,
-      total_count: 12, // 12 billing cycles, then auto-renews or ends — adjust
+      total_count: plan === 'Yearly' ? 1 : 12,
     });
 
-    // Razorpay's hosted checkout needs the subscription id passed to
-    // Razorpay Checkout.js on the frontend, OR use subscription.short_url
-    // if you enabled hosted payment pages in the dashboard.
     return res.status(200).json({
       subscription_id: subscription.id,
       url: subscription.short_url || null,
     });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: 'Could not create subscription' });
+    return res.status(500).json({ error: 'Could not create checkout' });
   }
 }
-
-/* ---------------- STRIPE VERSION (use instead, if applicable) ----------------
-
-import Stripe from 'stripe';
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-const PRICE_MAP = {
-  Associate: process.env.STRIPE_PRICE_ASSOCIATE, // price_xxx, created in Stripe dashboard
-  Member: process.env.STRIPE_PRICE_MEMBER,
-  Trustee: process.env.STRIPE_PRICE_TRUSTEE,
-};
-
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
-  const { plan } = req.body;
-  const price = PRICE_MAP[plan];
-  if (!price) return res.status(400).json({ error: 'Unknown plan' });
-
-  const session = await stripe.checkout.sessions.create({
-    mode: 'subscription',
-    line_items: [{ price, quantity: 1 }],
-    payment_method_types: ['card', 'us_bank_account'], // ACH bank transfer
-    success_url: `${process.env.SITE_URL}/success`,
-    cancel_url: `${process.env.SITE_URL}/`,
-  });
-
-  return res.status(200).json({ url: session.url });
-}
----------------------------------------------------------------------------- */
