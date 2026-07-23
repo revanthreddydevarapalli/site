@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vault — Membership</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B0F14;
+    --steel:#1C232C;
+    --steel-2:#242C36;
+    --hairline:#3A4451;
+    --brass:#C9A227;
+    --brass-dim:#8f7521;
+    --parchment:#E8E4DA;
+    --parchment-dim:#9AA3AE;
+    --mint:#4FD1A5;
+    --red:#E5484D;
+    --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--parchment);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .container{max-width:1040px;margin:0 auto;padding:0 24px;}
+
+  /* NAV */
+  nav{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:28px 0;border-bottom:1px solid var(--hairline);
+  }
+  .brand{
+    font-family:'Fraunces',serif;font-weight:600;font-size:22px;letter-spacing:0.02em;
+    display:flex;align-items:center;gap:10px;
+  }
+  .brand .mark{
+    width:22px;height:22px;border:1.5px solid var(--brass);border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--brass);
+  }
+  nav a.nav-link{color:var(--parchment-dim);text-decoration:none;font-size:14px;margin-left:28px;}
+  nav a.nav-link:hover{color:var(--parchment);}
+
+  /* HERO */
+  header.hero{padding:88px 0 64px;border-bottom:1px solid var(--hairline);}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.12em;
+    color:var(--brass);text-transform:uppercase;margin-bottom:18px;
+  }
+  h1{
+    font-family:'Fraunces',serif;font-weight:600;font-size:clamp(36px,5.5vw,58px);
+    line-height:1.05;margin:0 0 22px;max-width:720px;letter-spacing:-0.01em;
+  }
+  .hero p.sub{
+    color:var(--parchment-dim);font-size:17px;line-height:1.6;max-width:520px;margin:0 0 36px;
+  }
+  .ledger-strip{
+    display:flex;gap:0;border:1px solid var(--hairline);border-radius:var(--radius);overflow:hidden;
+    max-width:620px;
+  }
+  .ledger-strip div{
+    flex:1;padding:16px 20px;border-right:1px solid var(--hairline);
+  }
+  .ledger-strip div:last-child{border-right:none;}
+  .ledger-strip .num{font-family:'JetBrains Mono',monospace;font-size:20px;color:var(--brass);}
+  .ledger-strip .lbl{font-size:12px;color:var(--parchment-dim);margin-top:4px;}
+
+  /* PLANS */
+  section.plans{padding:80px 0;border-bottom:1px solid var(--hairline);}
+  .section-head{margin-bottom:44px;}
+  .section-head .eyebrow{margin-bottom:12px;}
+  .section-head h2{font-family:'Fraunces',serif;font-weight:600;font-size:32px;margin:0;}
+
+  .plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--hairline);border-radius:var(--radius);overflow:hidden;}
+  .plan{
+    background:var(--steel);padding:36px 30px;border-right:1px solid var(--hairline);position:relative;
+    display:flex;flex-direction:column;
+  }
+  .plan:last-child{border-right:none;}
+  .plan.featured{background:var(--steel-2);}
+  .seal{
+    position:absolute;top:28px;right:26px;
+    width:52px;height:52px;border:1.5px solid var(--brass);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;transform:rotate(-8deg);
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.06em;
+    color:var(--brass);text-align:center;line-height:1.2;
+  }
+  .plan-name{font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin-bottom:6px;}
+  .plan-desc{font-size:13px;color:var(--parchment-dim);margin-bottom:26px;line-height:1.5;}
+  .plan-price{
+    font-family:'JetBrains Mono',monospace;font-size:38px;color:var(--parchment);margin-bottom:2px;
+  }
+  .plan-price span{font-size:14px;color:var(--parchment-dim);font-weight:400;}
+  .plan-cycle{font-size:12px;color:var(--parchment-dim);margin-bottom:28px;}
+  .plan-features{list-style:none;padding:0;margin:0 0 32px;flex:1;}
+  .plan-features li{
+    font-size:13.5px;color:var(--parchment-dim);padding:9px 0;border-top:1px solid var(--hairline);
+    display:flex;gap:10px;
+  }
+  .plan-features li:first-child{border-top:none;}
+  .plan-features li::before{content:"—";color:var(--brass);flex-shrink:0;}
+  .btn{
+    display:block;text-align:center;padding:13px 20px;border-radius:var(--radius);
+    font-size:14px;font-weight:500;text-decoration:none;cursor:pointer;border:1px solid var(--brass);
+    background:transparent;color:var(--brass);transition:all .15s ease;font-family:'Inter',sans-serif;
+  }
+  .btn:hover{background:var(--brass);color:var(--ink);}
+  .btn.solid{background:var(--brass);color:var(--ink);}
+  .btn.solid:hover{background:var(--brass-dim);border-color:var(--brass-dim);}
+
+  /* PAYMENT MODAL */
+  .overlay{
+    position:fixed;inset:0;background:rgba(11,15,20,0.82);backdrop-filter:blur(3px);
+    display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .overlay.open{display:flex;}
+  .modal{
+    background:var(--steel);border:1px solid var(--hairline);border-radius:var(--radius);
+    width:100%;max-width:420px;padding:32px;position:relative;
+  }
+  .modal-close{
+    position:absolute;top:18px;right:18px;background:none;border:none;color:var(--parchment-dim);
+    font-size:20px;cursor:pointer;line-height:1;
+  }
+  .modal h3{font-family:'Fraunces',serif;font-size:22px;margin:0 0 6px;}
+  .modal .plan-tag{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--brass);margin-bottom:26px;}
+  .pay-option{
+    display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--hairline);
+    border-radius:var(--radius);margin-bottom:12px;cursor:pointer;transition:border-color .15s;
+  }
+  .pay-option:hover{border-color:var(--brass);}
+  .pay-icon{
+    width:36px;height:36px;border-radius:50%;border:1px solid var(--hairline);
+    display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;
+  }
+  .pay-option .pay-title{font-size:14px;font-weight:500;margin-bottom:2px;}
+  .pay-option .pay-sub{font-size:12px;color:var(--parchment-dim);}
+  .modal-note{font-size:12px;color:var(--parchment-dim);margin-top:20px;line-height:1.6;}
+
+  footer{padding:40px 0;text-align:center;color:var(--parchment-dim);font-size:13px;}
+
+  @media (max-width:760px){
+    .plan-grid{grid-template-columns:1fr;}
+    .plan{border-right:none;border-bottom:1px solid var(--hairline);}
+    .plan:last-child{border-bottom:none;}
+    .ledger-strip{flex-direction:column;}
+    .ledger-strip div{border-right:none;border-bottom:1px solid var(--hairline);}
+    nav a.nav-link{margin-left:16px;font-size:13px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <nav>
+    <div class="brand"><span class="mark">V</span> Vault</div>
+    <div>
+      <a class="nav-link" href="#plans">Membership</a>
+      <a class="nav-link" href="#faq">Ledger notes</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="eyebrow">Statement of Membership</div>
+    <h1>Access, held to account.<br>Pay however suits the ledger.</h1>
+    <p class="sub">One membership, three ways to settle it — card, bank transfer, or crypto. No lock-in, cancel from your account at any time.</p>
+    <div class="ledger-strip">
+      <div><div class="num">2,140</div><div class="lbl">active members</div></div>
+      <div><div class="num">99.9%</div><div class="lbl">uptime, ledger-verified</div></div>
+      <div><div class="num">24h</div><div class="lbl">crypto confirmation window</div></div>
+    </div>
+  </header>
+
+  <section class="plans" id="plans">
+    <div class="section-head">
+      <div class="eyebrow">Tiers</div>
+      <h2>Choose your standing</h2>
+    </div>
+    <div class="plan-grid">
+
+      <div class="plan" data-plan="associate" data-price="9">
+        <div class="plan-name">Associate</div>
+        <div class="plan-desc">For getting acquainted with the vault.</div>
+        <div class="plan-price">$9<span>/mo</span></div>
+        <div class="plan-cycle">billed monthly</div>
+        <ul class="plan-features">
+          <li>Core access</li>
+          <li>Email support</li>
+          <li>Cancel anytime</li>
+        </ul>
+        <button class="btn open-pay" data-plan="Associate" data-price="9">Open account</button>
+      </div>
+
+      <div class="plan featured" data-plan="member" data-price="24">
+        <div class="seal">MOST<br>HELD</div>
+        <div class="plan-name">Member</div>
+        <div class="plan-desc">The standing most people settle into.</div>
+        <div class="plan-price">$24<span>/mo</span></div>
+        <div class="plan-cycle">billed monthly</div>
+        <ul class="plan-features">
+          <li>Everything in Associate</li>
+          <li>Priority support</li>
+          <li>Full archive access</li>
+          <li>Early releases</li>
+        </ul>
+        <button class="btn solid open-pay" data-plan="Member" data-price="24">Open account</button>
+      </div>
+
+      <div class="plan" data-plan="trustee" data-price="59">
+        <div class="plan-name">Trustee</div>
+        <div class="plan-desc">For those who want a seat at the table.</div>
+        <div class="plan-price">$59<span>/mo</span></div>
+        <div class="plan-cycle">billed monthly</div>
+        <ul class="plan-features">
+          <li>Everything in Member</li>
+          <li>Direct line to the team</li>
+          <li>Vote on roadmap items</li>
+        </ul>
+        <button class="btn open-pay" data-plan="Trustee" data-price="59">Open account</button>
+      </div>
+
+    </div>
+  </section>
+
+  <footer id="faq">
+    Statements are issued monthly. Cancel from your account settings — no calls required.
+  </footer>
+</div>
+
+<!-- Payment modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">×</button>
+    <h3>Settle your membership</h3>
+    <div class="plan-tag" id="modalPlanTag">— Member · $24/mo</div>
+
+    <div class="pay-option" id="payCard">
+      <div class="pay-icon">▤</div>
+      <div>
+        <div class="pay-title">Card / Bank transfer</div>
+        <div class="pay-sub">Visa, Mastercard, ACH, UPI — via Razorpay/Stripe</div>
+      </div>
+    </div>
+
+    <div class="pay-option" id="payCrypto">
+      <div class="pay-icon">◈</div>
+      <div>
+        <div class="pay-title">Crypto</div>
+        <div class="pay-sub">BTC, ETH, USDT — via NOWPayments</div>
+      </div>
+    </div>
+
+    <div class="modal-note">You'll be redirected to a secure checkout. Nothing is charged on this page directly.</div>
+  </div>
+</div>
+
+<script>
+  const overlay = document.getElementById('overlay');
+  const modalPlanTag = document.getElementById('modalPlanTag');
+  let currentPlan = null, currentPrice = null;
+
+  document.querySelectorAll('.open-pay').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentPlan = btn.dataset.plan;
+      currentPrice = btn.dataset.price;
+      modalPlanTag.textContent = `— ${currentPlan} · $${currentPrice}/mo`;
+      overlay.classList.add('open');
+    });
+  });
+
+  document.getElementById('modalClose').addEventListener('click', () => overlay.classList.remove('open'));
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+
+  // Card / bank transfer -> calls your backend to create a checkout session
+  document.getElementById('payCard').addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: currentPlan, price: currentPrice })
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url; // redirect to Razorpay/Stripe hosted checkout
+      else alert('Checkout is not wired up yet — see api-checkout.js');
+    } catch (err) {
+      alert('Checkout endpoint not deployed yet — see api-checkout.js');
+    }
+  });
+
+  // Crypto -> calls your backend to create a NOWPayments invoice
+  document.getElementById('payCrypto').addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/crypto-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: currentPlan, price: currentPrice })
+      });
+      const data = await res.json();
+      if (data.invoice_url) window.location.href = data.invoice_url;
+      else alert('Crypto checkout is not wired up yet — see api-crypto.js');
+    } catch (err) {
+      alert('Crypto endpoint not deployed yet — see api-crypto.js');
+    }
+  });
+</script>
+
+</body>
+</html>
