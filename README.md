@@ -18,13 +18,15 @@
    - `NOWPAYMENTS_API_KEY`
    - `SITE_URL` (your deployed domain, e.g. https://vault.vercel.app)
 
-## Pricing
+## Pricing & tax
 - Monthly: **$99/mo**, Yearly: **$999/yr**
-- **Bank transfer only**: +18% GST added on top (per Indian tax requirement) — handled server-side in `api/checkout.js`, not just cosmetic on the frontend.
-- Card and crypto: listed price, no GST added.
-- **Razorpay's own transaction fee is passed through to the customer** on both card and bank transfer, grossed up so you net the full listed price after Razorpay takes their cut. Rates used (`RAZORPAY_FEE_DOMESTIC` ~2%, `RAZORPAY_FEE_INTL` ~3%, plus Razorpay's 18% GST on their own fee) are placeholders — confirm your actual rates in the Razorpay dashboard (they vary by your account type/volume) and update the env vars accordingly.
-- **Card path caveat**: Razorpay Subscription Plans are fixed-price (set once in the dashboard), so the fee can't be computed per-request like it is for bank transfer orders. You need to create the Monthly/Yearly Plans in the Razorpay dashboard already priced at the grossed-up amount (domestic and international will differ — consider two Plan variants per cycle, e.g. `RAZORPAY_PLAN_MONTHLY_DOMESTIC` / `_INTL`, or just pick one blended rate).
-- The "is your card international?" check on the frontend is currently a plain browser confirm dialog — fine to ship with, but a BIN-lookup or Razorpay's own international-card detection would be a cleaner long-term fix.
+- **GST (18%) applies to India-billed customers only**, across all three payment methods — this replaced the earlier "GST only on bank transfer" logic, which wasn't actually correct: GST taxes the sale, not the payment rail.
+- **International customers pay no GST** — treated as export of services (zero-rated), assuming you've filed an LUT with GST once registered.
+- **You do not need to charge GST at all until your annual turnover crosses ₹20 lakh and you're GST-registered.** If that's not you yet, don't collect it — there's no GSTIN to remit it under. This is general info, not tax advice; confirm your actual registration/LUT status with a CA before this goes live.
+- Bank transfer (NEFT/RTGS) is treated as domestic-only in the code, so it always applies GST — international customers should use card or crypto instead (see the earlier note on why bank transfer doesn't verify well for international payers).
+- **Razorpay's own transaction fee is passed through to the customer** on card and bank transfer, grossed up so you net the full listed (+GST if applicable) price. Rates used (`RAZORPAY_FEE_DOMESTIC` ~2%, `RAZORPAY_FEE_INTL` ~3%, plus Razorpay's 18% GST on their own fee) are placeholders — confirm actual rates in your Razorpay dashboard.
+- **Card path caveat**: Razorpay Subscription Plans are fixed-price, so you need four Plan variants in the dashboard (Monthly/Yearly × domestic/international), each pre-priced at the grossed-up, GST-adjusted amount — the backend can't compute this per-request for subscriptions the way it can for one-off bank transfer orders.
+- The domestic/international check is currently a plain browser `confirm()` dialog on the frontend — fine to ship with, but self-declared and not verified against actual billing country. A proper implementation would check this server-side against the card's BIN or the customer's provided billing address.
 4. Deploy. Done — you get a free `*.vercel.app` domain, or attach your own.
 
 ## Accounts you need to open (outside this repo)
