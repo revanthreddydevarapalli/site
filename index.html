@@ -215,7 +215,7 @@
       </div>
 
     </div>
-    <div class="gst-note">Paying by bank transfer? An additional <b>18% GST</b> applies on top of the listed price, per Indian tax requirements. Card and crypto payments show the listed price as-is.</div>
+    <div class="gst-note">Billing from India: <b>18% GST</b> applies on all payment methods. Billing from outside India: no GST (export of services). You'll confirm this at checkout.</div>
   </section>
 
   <footer id="faq">
@@ -250,7 +250,7 @@
       <div class="pay-icon">◈</div>
       <div>
         <div class="pay-title">Crypto</div>
-        <div class="pay-sub">BTC, ETH, USDT — via NOWPayments</div>
+        <div class="pay-sub" id="cryptoSub">BTC, ETH, USDT — via NOWPayments</div>
       </div>
     </div>
 
@@ -263,10 +263,11 @@
   const modalPlanTag = document.getElementById('modalPlanTag');
   const cardSub = document.getElementById('cardSub');
   const bankSub = document.getElementById('bankSub');
+  const cryptoSub = document.getElementById('cryptoSub');
   const GST_RATE = 0.18;
   const FEE_DOMESTIC = 0.02; // ~2% Razorpay domestic — confirm in your dashboard
   const FEE_INTL = 0.03;     // ~3% Razorpay international card — confirm in your dashboard
-  let currentPlan = null, currentPrice = null, currentCycle = null;
+  let currentPlan = null, currentPrice = null, currentCycle = null, isDomestic = true;
 
   function grossUp(net, feeRate) {
     const effRate = feeRate * (1 + GST_RATE);
@@ -278,15 +279,24 @@
       currentPlan = btn.dataset.plan;
       currentPrice = parseFloat(btn.dataset.price);
       currentCycle = currentPlan === 'Yearly' ? 'yr' : 'mo';
-      modalPlanTag.textContent = `— ${currentPlan} · $${currentPrice}/${currentCycle}`;
+      isDomestic = confirm('Are you billing from India?\nOK = India (18% GST applies) · Cancel = Outside India (no GST, export of services)');
+      modalPlanTag.textContent = `— ${currentPlan} · $${currentPrice}/${currentCycle}${isDomestic ? ' · GST applies' : ' · export, no GST'}`;
 
-      const cardDomestic = grossUp(currentPrice, FEE_DOMESTIC).toFixed(2);
-      const cardIntl = grossUp(currentPrice, FEE_INTL).toFixed(2);
-      cardSub.textContent = `$${cardDomestic} domestic · $${cardIntl} international card (fee incl.)`;
+      const priceWithGst = isDomestic ? currentPrice * (1 + GST_RATE) : currentPrice;
+      const cardFeeRate = isDomestic ? FEE_DOMESTIC : FEE_INTL;
+      const cardTotal = grossUp(priceWithGst, cardFeeRate).toFixed(2);
+      cardSub.textContent = isDomestic
+        ? `$${currentPrice} + 18% GST + Razorpay fee = $${cardTotal}`
+        : `$${currentPrice} (export of services, no GST) + fee = $${cardTotal}`;
 
-      const bankNet = currentPrice * (1 + GST_RATE);
-      const bankTotal = grossUp(bankNet, FEE_DOMESTIC).toFixed(2);
-      bankSub.textContent = `NEFT/RTGS · $${currentPrice} + 18% GST + Razorpay fee = $${bankTotal}`;
+      // Bank transfer stays domestic-only (NEFT/RTGS), GST always applies.
+      const bankTotal = grossUp(currentPrice * (1 + GST_RATE), FEE_DOMESTIC).toFixed(2);
+      bankSub.textContent = `NEFT/RTGS, India only · $${currentPrice} + 18% GST + fee = $${bankTotal}`;
+
+      // Crypto: same domestic/export logic, no Razorpay fee involved.
+      cryptoSub.textContent = isDomestic
+        ? `$${(currentPrice * (1 + GST_RATE)).toFixed(2)} (incl. 18% GST)`
+        : `$${currentPrice} (export of services, no GST)`;
 
       overlay.classList.add('open');
     });
@@ -297,12 +307,11 @@
 
   // Card -> calls your backend to create a checkout session
   document.getElementById('payCard').addEventListener('click', async () => {
-    const is_international = confirm('Is your card issued outside India?\nOK = International (higher fee) · Cancel = Domestic India');
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: currentPlan, price: currentPrice, method: 'card', is_international })
+        body: JSON.stringify({ plan: currentPlan, price: currentPrice, method: 'card', is_domestic: isDomestic })
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url; // redirect to Razorpay hosted checkout
@@ -334,13 +343,13 @@
       const res = await fetch('/api/crypto-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: currentPlan, price: currentPrice })
+        body: JSON.stringify({ plan: currentPlan, price: currentPrice, is_domestic: isDomestic })
       });
       const data = await res.json();
       if (data.invoice_url) window.location.href = data.invoice_url;
-      else alert('Crypto checkout is not wired up yet — see api-crypto.js');
+      else alert('Crypto checkout is not wired up yet — see api/crypto-checkout.js');
     } catch (err) {
-      alert('Crypto endpoint not deployed yet — see api-crypto.js');
+      alert('Crypto endpoint not deployed yet — see api/crypto-checkout.js');
     }
   });
 </script>
