@@ -264,7 +264,14 @@
   const cardSub = document.getElementById('cardSub');
   const bankSub = document.getElementById('bankSub');
   const GST_RATE = 0.18;
+  const FEE_DOMESTIC = 0.02; // ~2% Razorpay domestic — confirm in your dashboard
+  const FEE_INTL = 0.03;     // ~3% Razorpay international card — confirm in your dashboard
   let currentPlan = null, currentPrice = null, currentCycle = null;
+
+  function grossUp(net, feeRate) {
+    const effRate = feeRate * (1 + GST_RATE);
+    return (net / (1 - effRate));
+  }
 
   document.querySelectorAll('.open-pay').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -272,9 +279,15 @@
       currentPrice = parseFloat(btn.dataset.price);
       currentCycle = currentPlan === 'Yearly' ? 'yr' : 'mo';
       modalPlanTag.textContent = `— ${currentPlan} · $${currentPrice}/${currentCycle}`;
-      cardSub.textContent = `Visa, Mastercard, UPI · $${currentPrice.toFixed(2)}`;
-      const gstTotal = (currentPrice * (1 + GST_RATE)).toFixed(2);
-      bankSub.textContent = `NEFT/RTGS · $${currentPrice.toFixed(2)} + 18% GST = $${gstTotal}`;
+
+      const cardDomestic = grossUp(currentPrice, FEE_DOMESTIC).toFixed(2);
+      const cardIntl = grossUp(currentPrice, FEE_INTL).toFixed(2);
+      cardSub.textContent = `$${cardDomestic} domestic · $${cardIntl} international card (fee incl.)`;
+
+      const bankNet = currentPrice * (1 + GST_RATE);
+      const bankTotal = grossUp(bankNet, FEE_DOMESTIC).toFixed(2);
+      bankSub.textContent = `NEFT/RTGS · $${currentPrice} + 18% GST + Razorpay fee = $${bankTotal}`;
+
       overlay.classList.add('open');
     });
   });
@@ -282,16 +295,17 @@
   document.getElementById('modalClose').addEventListener('click', () => overlay.classList.remove('open'));
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
 
-  // Card -> calls your backend to create a checkout session (no GST added)
+  // Card -> calls your backend to create a checkout session
   document.getElementById('payCard').addEventListener('click', async () => {
+    const is_international = confirm('Is your card issued outside India?\nOK = International (higher fee) · Cancel = Domestic India');
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: currentPlan, price: currentPrice, method: 'card' })
+        body: JSON.stringify({ plan: currentPlan, price: currentPrice, method: 'card', is_international })
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url; // redirect to Razorpay/Stripe hosted checkout
+      if (data.url) window.location.href = data.url; // redirect to Razorpay hosted checkout
       else alert('Checkout is not wired up yet — see api/checkout.js');
     } catch (err) {
       alert('Checkout endpoint not deployed yet — see api/checkout.js');
