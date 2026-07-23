@@ -4,6 +4,7 @@
 // customers are treated as export of services (0% GST).
 
 const PRICE_MAP = {
+  Levels: 49,
   Monthly: 99,
   Yearly: 999,
 };

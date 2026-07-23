@@ -12,14 +12,15 @@
    covers this comfortably at low volume.
 3. Set environment variables in Vercel → Project → Settings → Environment Variables:
    - `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`
-   - `RAZORPAY_PLAN_MONTHLY`, `RAZORPAY_PLAN_YEARLY`
+   - `RAZORPAY_PLAN_LEVELS`, `RAZORPAY_PLAN_MONTHLY`, `RAZORPAY_PLAN_YEARLY`
      (create these Plan IDs first in Razorpay Dashboard → Subscriptions → Plans, priced in INR — $99/mo and $999/yr converted at your target rate)
    - `USD_TO_INR` (static fallback FX rate used only for the bank-transfer GST calc, e.g. `83`)
    - `NOWPAYMENTS_API_KEY`
    - `SITE_URL` (your deployed domain, e.g. https://vault.vercel.app)
 
 ## Pricing & tax
-- Monthly: **$99/mo**, Yearly: **$999/yr**
+- **Levels only**: **$49/mo** — just the daily intraday levels, no market commentary.
+- Monthly: **$99/mo**, Yearly: **$999/yr** — levels + the plain-language market read.
 - **GST (18%) applies to India-billed customers only**, across all three payment methods — this replaced the earlier "GST only on bank transfer" logic, which wasn't actually correct: GST taxes the sale, not the payment rail.
 - **International customers pay no GST** — treated as export of services (zero-rated), assuming you've filed an LUT with GST once registered.
 - **You do not need to charge GST at all until your annual turnover crosses ₹20 lakh and you're GST-registered.** If that's not you yet, don't collect it — there's no GSTIN to remit it under. This is general info, not tax advice; confirm your actual registration/LUT status with a CA before this goes live.

@@ -78,7 +78,7 @@
   .section-head .eyebrow{margin-bottom:12px;}
   .section-head h2{font-family:'Fraunces',serif;font-weight:600;font-size:32px;margin:0;}
 
-  .plan-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border:1px solid var(--hairline);border-radius:var(--radius);overflow:hidden;max-width:760px;}
+  .plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--hairline);border-radius:var(--radius);overflow:hidden;max-width:940px;}
   .gst-note{font-size:12px;color:var(--parchment-dim);margin-top:18px;}
   .gst-note b{color:var(--brass);font-weight:500;}
   .plan{
@@ -186,6 +186,19 @@
       <h2>Choose your standing</h2>
     </div>
     <div class="plan-grid">
+
+      <div class="plan" data-plan="levels" data-price="49">
+        <div class="plan-name">Levels only</div>
+        <div class="plan-desc">Just the numbers, no commentary.</div>
+        <div class="plan-price">$49<span>/mo</span></div>
+        <div class="plan-cycle">billed monthly</div>
+        <ul class="plan-features">
+          <li>Daily intraday levels</li>
+          <li>No market read, no commentary</li>
+          <li>Cancel anytime</li>
+        </ul>
+        <button class="btn open-pay" data-plan="Levels" data-price="49">Open account</button>
+      </div>
 
       <div class="plan" data-plan="monthly" data-price="99">
         <div class="plan-name">Monthly</div>

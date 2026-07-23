@@ -21,11 +21,13 @@ const RAZORPAY_FEE_DOMESTIC = Number(process.env.RAZORPAY_FEE_DOMESTIC) || 0.02;
 const RAZORPAY_FEE_INTL     = Number(process.env.RAZORPAY_FEE_INTL) || 0.03;
 
 const BASE_PRICE = {
+  Levels: 49,
   Monthly: 99,
   Yearly: 999,
 };
 
 const PLAN_MAP = {
+  Levels: process.env.RAZORPAY_PLAN_LEVELS,
   Monthly: process.env.RAZORPAY_PLAN_MONTHLY,
   Yearly: process.env.RAZORPAY_PLAN_YEARLY,
 };
