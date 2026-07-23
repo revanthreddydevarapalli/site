@@ -1,21 +1,22 @@
 // /api/crypto-checkout.js — Vercel serverless function
-// Creates a NOWPayments invoice for a one-off period payment.
-// NOWPayments also supports recurring "subscriptions" via a separate
-// endpoint (see NOWPAYMENTS_SUBSCRIPTIONS note below) if you want auto-renewal.
+// Creates a NOWPayments invoice. GST applies only to domestic (India)
+// customers, same logic as api/checkout.js — crypto sales to international
+// customers are treated as export of services (0% GST).
 
 const PRICE_MAP = {
   Monthly: 99,
   Yearly: 999,
 };
-// No GST surcharge applied here — GST is only added on the bank transfer
-// path per the pricing rule (see api/checkout.js).
+const GST_RATE = 0.18;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { plan } = req.body;
-  const price_amount = PRICE_MAP[plan];
-  if (!price_amount) return res.status(400).json({ error: 'Unknown plan' });
+  const { plan, is_domestic } = req.body;
+  const base = PRICE_MAP[plan];
+  if (!base) return res.status(400).json({ error: 'Unknown plan' });
+
+  const price_amount = is_domestic ? +(base * (1 + GST_RATE)).toFixed(2) : base;
 
   try {
     const response = await fetch('https://api.nowpayments.io/v1/invoice', {
@@ -28,7 +29,7 @@ export default async function handler(req, res) {
         price_amount,
         price_currency: 'usd',
         order_id: `${plan}-${Date.now()}`,
-        order_description: `Vault ${plan} membership`,
+        order_description: `Vault ${plan} membership${is_domestic ? ' (incl. GST)' : ''}`,
         ipn_callback_url: `${process.env.SITE_URL}/api/crypto-webhook`,
         success_url: `${process.env.SITE_URL}/success`,
         cancel_url: `${process.env.SITE_URL}/`,
@@ -43,11 +44,8 @@ export default async function handler(req, res) {
   }
 }
 
-/* NOWPAYMENTS_SUBSCRIPTIONS:
-   For true recurring crypto billing (auto-charge each month), NOWPayments
-   requires setting up "Subscriptions" plans via their dashboard/API and a
-   stored payment method — most crypto processors don't support silent
-   recurring charges the way card networks do, since crypto wallets can't be
-   auto-debited. The common pattern instead: send a reminder email/notification
-   each cycle with a fresh invoice link (like this one), and gate access based
-   on your webhook-confirmed payment record + expiry date in your own DB. */
+/* NOWPAYMENTS_SUBSCRIPTIONS: for true recurring crypto billing, NOWPayments
+   requires "Subscriptions" plans via their dashboard — crypto can't be
+   auto-debited like a card. Common pattern: send a fresh invoice link each
+   cycle, gate access based on webhook-confirmed payment + your own expiry
+   tracking in a DB. */
