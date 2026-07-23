@@ -22,6 +22,9 @@
 - Monthly: **$99/mo**, Yearly: **$999/yr**
 - **Bank transfer only**: +18% GST added on top (per Indian tax requirement) — handled server-side in `api/checkout.js`, not just cosmetic on the frontend.
 - Card and crypto: listed price, no GST added.
+- **Razorpay's own transaction fee is passed through to the customer** on both card and bank transfer, grossed up so you net the full listed price after Razorpay takes their cut. Rates used (`RAZORPAY_FEE_DOMESTIC` ~2%, `RAZORPAY_FEE_INTL` ~3%, plus Razorpay's 18% GST on their own fee) are placeholders — confirm your actual rates in the Razorpay dashboard (they vary by your account type/volume) and update the env vars accordingly.
+- **Card path caveat**: Razorpay Subscription Plans are fixed-price (set once in the dashboard), so the fee can't be computed per-request like it is for bank transfer orders. You need to create the Monthly/Yearly Plans in the Razorpay dashboard already priced at the grossed-up amount (domestic and international will differ — consider two Plan variants per cycle, e.g. `RAZORPAY_PLAN_MONTHLY_DOMESTIC` / `_INTL`, or just pick one blended rate).
+- The "is your card international?" check on the frontend is currently a plain browser confirm dialog — fine to ship with, but a BIN-lookup or Razorpay's own international-card detection would be a cleaner long-term fix.
 4. Deploy. Done — you get a free `*.vercel.app` domain, or attach your own.
 
 ## Accounts you need to open (outside this repo)
